@@ -1,0 +1,39 @@
+#
+# ~/.bashrc
+#
+
+# If not running interactively, don't do anything
+[[ $- != *i* ]] && return
+
+#FUNCTIONS
+md () {
+	mkdir -p $1
+	cd $1
+}
+
+IP () {
+	RED='\033[0;31m'
+	GREEN='\033[0;32m'
+	NC='\033[0m'	# No Color
+
+	IP=$(curl api.ipify.org 2> /dev/null)
+	
+	if [[ -z "$IP" ]]; then
+		echo -e "${RED}Check your connection${NC}"
+	else
+		echo -e "Your IP is: ${GREEN}$IP${NC}"
+	fi
+
+}
+
+#ALIASES
+alias ls='ls --color=auto'
+alias sl='ls'
+alias mkdir='mkdir -p'
+alias grep='grep --color=auto'
+alias cd..='cd ../'
+alias cd....='cd ../../'
+
+#Colorful prompt
+PS1='\[\033[00;32m\][\u@\h\[\033[00;37m\] \W\[\033[00;32m\]]\$\[\033[00;37m\] '
+#PS1='[\u@\h \W]\$ '

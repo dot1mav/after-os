@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# Installing packages which I need
+echo "Installing packages which I use"
+pacman -S konsole dolphin okular firefox terminus-font pulseaudio \
+	pulseaudio-alsa plasma-pa plasma-nm networkmanager bash-completion \
+	curl git
+
+# Creating ~/.xinitrc
+echo 'exec startplasma-x11' > ~/.xinitrc
+
+# Installing vim-plug (vim plugin manager)
+echo "installing vim-plug"
+curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
+    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+
+echo "vim-plug installed"
+echo "---> configurations for vim plugins"
+
+echo "./vimrc.save --> ~/.vimrc"
+cp ./vimrc.save ~/.vimrc
+
+echo "Remember to install plugins from vim"
+echo "--> :source .vimrc"
+echo "--> :PlugInstall"
+
+# Bash configuration ~/.bashrc
+echo "./bashrc.save --> ~/.bashrc"
+cp ./bashrc.save ~/.bashrc
+
+# Creating /etc/vconsole.conf
+echo FONT=ter-924n.psf.gz > /etc/vconsole.conf
+

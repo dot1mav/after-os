@@ -1,10 +1,32 @@
 #!/bin/bash
 
-# Installing packages which I need
-echo "Installing packages which I use"
-pacman -S konsole dolphin okular firefox terminus-font pulseaudio \
-	pulseaudio-alsa plasma-pa plasma-nm networkmanager bash-completion \
-	curl git
+UNAME=$(uname)
+
+if [ "$UNAME" == "Linux" ] ; then
+
+  DIS=$(lsb_release -i | cut -f 2-)
+
+  if [[ "$DIS" == "Linuxmint" || "$DIS" == "Debian" || "$DIS" == "Ubuntu" ]]
+  then
+	# Installing packages which I need
+	echo "Debian Distro :)"
+	sleep 5
+	echo "Installing packages which I use"
+	apt-get update &> /dev/null
+	apt-get upgrade -y &> /dev/null
+	apt-get install konsole dolphin okular firefox terminus-font pulseaudio \
+		pulseaudio-alsa plasma-pa plasma-nm networkmanager bash-completion \
+		curl git -y &> /dev/null
+  else
+    echo "your distro is not supported"
+  fi
+elif [ "$UNAME" == "Darwin" ] ; then
+	echo "you use Darwin and this os not supported"
+	exit
+elif [[ "$UNAME" == CYGWIN* || "$UNAME" == MINGW* ]] ; then
+	echo "you use Windows and this os not supported"
+	exit
+fi
 
 # Creating ~/.xinitrc
 echo 'exec startplasma-x11' > ~/.xinitrc

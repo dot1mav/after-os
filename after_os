@@ -86,10 +86,10 @@ main(){
 	if [ "$UNAME" == "Linux" ] ; then
 		instaling
 	elif [ "$UNAME" == "Darwin" ] ; then
-		echo "You use Darwin and this OS not supported"
+		echo "You use Darwin and this OS is not supported"
 		exit
 	elif [[ "$UNAME" == CYGWIN* || "$UNAME" == MINGW* ]] ; then
-		echo "You use Windows and this OS not supported"
+		echo "You use Windows and this OS is not supported"
 		exit
 	fi
 }

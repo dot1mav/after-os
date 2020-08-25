@@ -9,12 +9,15 @@ DEBIAN_NAME="Debian"
 FILENAME="/etc/os-release"
 
 # You can add every package wich you need after installing fresh OS
-APT_PACKAGES=""
+APT_PACKAGES="git curl"
 PACMAN_PACKAGES="konsole dolphin okular firefox terminus-font
 	pulseaudio pulseaudio-alsa plasma-pa plasma-nm
 	networkmanager bash-completion curl git" 
 DNF_PACKAGES=""
 YUM_PACKAGES=""
+PROGRAMMING_PACKAGE_PY="python3 python3-pip openjdk-11 gcc g++"
+SHELL="zsh"
+CHANGE_SHELL=0
 
 distribution(){
         if [ -z  "$FILENAME" ]
@@ -51,6 +54,14 @@ find_distro(){
 	fi
 }
 
+install_pipenv(){
+	echo "installing pipenv(virtual env)..."
+	python3 -m pip install pipenv &> /dev/null
+	sleep 3
+	clear
+}
+
+
 instaling(){
 	find_distro
 	echo "Installing packages which I use"
@@ -59,20 +70,26 @@ instaling(){
 		# Installing packages which I need
 		echo "Debian Distro :)"
 		sleep 2
+		echo "updating"
 		apt-get update &> /dev/null
+		sleep 2
+		clear
+		echo "upgrading"
 		apt-get upgrade -y &> /dev/null
-		apt-get install $APT_PACKAGES &> /dev/null
+		sleep 2
+		clear
+		echo "installing packages"
+		apt-get install -y $APT_PACKAGES &> /dev/null
+		sleep 2
+		clear
 
 	elif [[ "$DISTRO" == "Arch" || "$DISTRO" == "ManjaroLinux" ]] ; then
 		echo "Arch Base Distro"
 		sleep 2
 		pacman -S $PACMAN_PACKAGES
-	elif [[ "$DISTRO" == "Fedora" ]] ; then
-		echo "Fedora Distro"
-		sleep 2
-		dnf install $DNF_PACKAGES
-	elif [[ "$DISTRO" == "CentOS" ]] ; then
-		echo "CentOS Distro"
+
+	elif [[ "$DISTRO" == "CentOS" || "$DISTRO" == "Fedora" || "$DISTRO" == "rhel" ]] ; then
+		echo "Redhat Distro"
 		sleep 2
 		yum install $YUM_PACKAGES
 	else
@@ -102,7 +119,7 @@ echo 'exec startplasma-x11' > ~/.xinitrc
 # Installing vim-plug (vim plugin manager)
 echo "installing vim-plug"
 curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
-    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim &> /dev/null
 
 echo "vim-plug installed"
 echo "---> configurations for vim plugins"

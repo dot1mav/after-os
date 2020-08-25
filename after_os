@@ -1,32 +1,100 @@
 #!/bin/bash
 
-UNAME=$(uname)
 
-if [ "$UNAME" == "Linux" ] ; then
+ROOT="/etc"
+LSB_FILE="lsb-release"
+DISTRIB_SUFFIX="release"
+DEBIAN_FILE="/etc/debian_version"
+DEBIAN_NAME="Debian"
+FILENAME="/etc/os-release"
 
-  DIS=$(lsb_release -i | cut -f 2-)
+# You can add every package wich you need after installing fresh OS
+APT_PACKAGES=""
+PACMAN_PACKAGES="konsole dolphin okular firefox terminus-font
+	pulseaudio pulseaudio-alsa plasma-pa plasma-nm
+	networkmanager bash-completion curl git" 
+DNF_PACKAGES=""
+YUM_PACKAGES=""
 
-  if [[ "$DIS" == "Linuxmint" || "$DIS" == "Debian" || "$DIS" == "Ubuntu" ]]
-  then
-	# Installing packages which I need
-	echo "Debian Distro :)"
-	sleep 5
+distribution(){
+        if [ -z  "$FILENAME" ]
+        then
+                if [ -f "$DEBIAN_FILE" ]
+                then
+                        DISTRO=$DEBIAN_NAME
+                else
+                        echo "Unable to find your distro"
+                fi
+        else
+                CONTENT=$(head -1 $FILENAME 2> /dev/null)
+                DISTRO=$(echo $CONTENT | sed -e \
+                "s/[[:blank:]][Ll][Ii][Nn][Uu][Xx][[:blank:]]/ /g" \
+                -e "s/\(.*\)[[:blank:]]release.*/\1/" \
+                -e "s/[[:blank:]]/ /g" )
+        fi
+}
+
+find_distro(){
+	if [[ -f "$FILENAME" ]] ; then
+		DISTRO=$(head -1  /etc/os-release | cut -f 2 -d '"' | cut -f 1 -d ' ')
+	else
+		FILENAME="/etc/redhat-release"
+        	if [ ! -f "$FILENAME" ]
+	        then
+			FILENAME=$(find $ROOT/ -maxdepth 1      \
+				-name \*$DISTRIB_SUFFIX         \
+				-and ! -name $LSB_FILE          \
+				-and -type f    2> /dev/null    \
+				| head -1 )
+	        fi
+        	distribution $FILENAME
+	fi
+}
+
+instaling(){
+	find_distro
 	echo "Installing packages which I use"
-	apt-get update &> /dev/null
-	apt-get upgrade -y &> /dev/null
-	apt-get install konsole dolphin okular firefox terminus-font pulseaudio \
-		pulseaudio-alsa plasma-pa plasma-nm networkmanager bash-completion \
-		curl git -y &> /dev/null
-  else
-    echo "your distro is not supported"
-  fi
-elif [ "$UNAME" == "Darwin" ] ; then
-	echo "you use Darwin and this os not supported"
-	exit
-elif [[ "$UNAME" == CYGWIN* || "$UNAME" == MINGW* ]] ; then
-	echo "you use Windows and this os not supported"
-	exit
-fi
+	if [[ "$DISTRO" == "Linuxmint" || "$DISTRO" == "Debian" || "$DISTRO" == "Ubuntu" ]]
+	then
+		# Installing packages which I need
+		echo "Debian Distro :)"
+		sleep 2
+		apt-get update &> /dev/null
+		apt-get upgrade -y &> /dev/null
+		apt-get install $APT_PACKAGES &> /dev/null
+
+	elif [[ "$DISTRO" == "Arch" || "$DISTRO" == "ManjaroLinux" ]] ; then
+		echo "Arch Base Distro"
+		sleep 2
+		pacman -S $PACMAN_PACKAGES
+	elif [[ "$DISTRO" == "Fedora" ]] ; then
+		echo "Fedora Distro"
+		sleep 2
+		dnf install $DNF_PACKAGES
+	elif [[ "$DISTRO" == "CentOS" ]] ; then
+		echo "CentOS Distro"
+		sleep 2
+		yum install $YUM_PACKAGES
+	else
+		echo $DISTRO
+		echo "Your distro is not supported"
+	fi
+}
+
+main(){
+	UNAME=$(uname)
+	if [ "$UNAME" == "Linux" ] ; then
+		instaling
+	elif [ "$UNAME" == "Darwin" ] ; then
+		echo "You use Darwin and this OS is not supported"
+		exit
+	elif [[ "$UNAME" == CYGWIN* || "$UNAME" == MINGW* ]] ; then
+		echo "You use Windows and this OS is not supported"
+		exit
+	fi
+}
+
+main
 
 # Creating ~/.xinitrc
 echo 'exec startplasma-x11' > ~/.xinitrc
@@ -52,4 +120,3 @@ cp ./bashrc.save ~/.bashrc
 
 # Creating /etc/vconsole.conf
 echo FONT=ter-924n.psf.gz > /etc/vconsole.conf
-

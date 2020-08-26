@@ -8,6 +8,8 @@ DEBIAN_FILE="/etc/debian_version"
 DEBIAN_NAME="Debian"
 FILENAME="/etc/os-release"
 
+XINITRC="$HOME/.xinitrc"
+
 # You can add every package wich you need after installing fresh OS
 APT_PACKAGES="git curl"
 PACMAN_PACKAGES="konsole dolphin okular firefox terminus-font
@@ -98,23 +100,41 @@ instaling(){
 	fi
 }
 
+configs(){
+	DESKTOP=$XDG_CURRENT_DESKTOP
+	# Window manager
+	if [[ -n "$DESKTOP" ]] ; then
+		if [[ "$DESKTOP" == "KDE" ]] ; then
+			echo "exec startplasma-x11" > $XINITRC
+		elif [[ "$DESKTOP" == "GNOME" ]] ; then
+			echo "exec gnome-session" > $XINITRC
+		elif [[ "$DESKTOP" == "X-Cinnamon" ]] ; then
+			echo "exec cinnamon-session" > $XINITRC
+		elif [[ "$DESKTOP" == "MATE" ]] ; then
+			echo "exec mate-session" > $XINITRC
+		elif [[ "$DESKTOP" == "XFCE" ]] ; then
+			echo "exec startxfce4" > $XINITRC
+		elif [[ "$DESKTOP" == "LXDE" ]] ; then
+			echo "exec startlxde" > $XINITRC
+		fi
+	fi
+}
+
 main(){
 	UNAME=$(uname)
 	if [ "$UNAME" == "Linux" ] ; then
-		instaling
+#		instaling
+		configs
 	elif [ "$UNAME" == "Darwin" ] ; then
 		echo "You use Darwin and this OS is not supported"
 		exit
-	elif [[ "$UNAME" == CYGWIN* || "$UNAME" == MINGW* ]] ; then
+	elif [ "$UNAME" == CYGWIN* || "$UNAME" == MINGW* ] ; then
 		echo "You use Windows and this OS is not supported"
 		exit
 	fi
 }
 
 main
-
-# Creating ~/.xinitrc
-echo 'exec startplasma-x11' > ~/.xinitrc
 
 # Installing vim-plug (vim plugin manager)
 echo "installing vim-plug"

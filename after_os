@@ -22,20 +22,18 @@ SHELL="zsh"
 CHANGE_SHELL=0
 
 distribution(){
-        if [ -z  "$FILENAME" ]
-        then
-                if [ -f "$DEBIAN_FILE" ]
-                then
-                        DISTRO=$DEBIAN_NAME
-                else
-                        echo "Unable to find your distro"
-                fi
-        else
-                CONTENT=$(head -1 $FILENAME 2> /dev/null)
-                DISTRO=$(echo $CONTENT | sed -e \
-                "s/[[:blank:]][Ll][Ii][Nn][Uu][Xx][[:blank:]]/ /g" \
-                -e "s/\(.*\)[[:blank:]]release.*/\1/" \
-                -e "s/[[:blank:]]/ /g" )
+        if [[ -z  "$FILENAME" ]] ; then
+		if [[ -f "$DEBIAN_FILE" ]] ; then
+			DISTRO=$DEBIAN_NAME
+		else
+			echo "Unable to find your distro"
+		fi
+	else
+		CONTENT=$(head -1 $FILENAME 2> /dev/null)
+		DISTRO=$(echo $CONTENT | sed \
+			-e "s/[[:blank:]][Ll][Ii][Nn][Uu][Xx][[:blank:]]/ /g" \
+			-e "s/\(.*\)[[:blank:]]release.*/\1/" \
+			-e "s/[[:blank:]]/ /g" )
         fi
 }
 
@@ -44,8 +42,7 @@ find_distro(){
 		DISTRO=$(head -1  /etc/os-release | cut -f 2 -d '"' | cut -f 1 -d ' ')
 	else
 		FILENAME="/etc/redhat-release"
-        	if [ ! -f "$FILENAME" ]
-	        then
+        	if [[ ! -f "$FILENAME" ]] ; then
 			FILENAME=$(find $ROOT/ -maxdepth 1      \
 				-name \*$DISTRIB_SUFFIX         \
 				-and ! -name $LSB_FILE          \
@@ -104,6 +101,8 @@ configs(){
 	DESKTOP=$XDG_CURRENT_DESKTOP
 	# Window manager
 	if [[ -n "$DESKTOP" ]] ; then
+		echo "Your current desktop: $DESKTOP"
+		echo "Creating $XINITRC"
 		if [[ "$DESKTOP" == "KDE" ]] ; then
 			echo "exec startplasma-x11" > $XINITRC
 		elif [[ "$DESKTOP" == "GNOME" ]] ; then
@@ -118,42 +117,42 @@ configs(){
 			echo "exec startlxde" > $XINITRC
 		fi
 	fi
+
+	# Installing vim-plug (vim plugin manager)
+	echo "installing vim-plug"
+	curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
+	    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim &> /dev/null
+
+	echo "vim-plug installed"
+	echo "---> configurations for vim plugins"
+	
+	echo "./vimrc.save --> ~/.vimrc"
+	cp ./vimrc.save ~/.vimrc
+	
+	echo "Remember to install plugins from vim"
+	echo "--> :source .vimrc"
+	echo "--> :PlugInstall"
+	
+	# Bash configuration ~/.bashrc
+	echo "./bashrc.save --> ~/.bashrc"
+	cp ./bashrc.save ~/.bashrc
+	
+	# Creating /etc/vconsole.conf
+	echo FONT=ter-924n.psf.gz > /etc/vconsole.conf
 }
 
 main(){
 	UNAME=$(uname)
-	if [ "$UNAME" == "Linux" ] ; then
-#		instaling
+	if [[ "$UNAME" == "Linux" ]] ; then
+		instaling
 		configs
-	elif [ "$UNAME" == "Darwin" ] ; then
+	elif [[ "$UNAME" == "Darwin" ]] ; then
 		echo "You use Darwin and this OS is not supported"
 		exit
-	elif [ "$UNAME" == CYGWIN* || "$UNAME" == MINGW* ] ; then
+	elif [[ "$UNAME" == CYGWIN* || "$UNAME" == MINGW* ]] ; then
 		echo "You use Windows and this OS is not supported"
 		exit
 	fi
 }
 
 main
-
-# Installing vim-plug (vim plugin manager)
-echo "installing vim-plug"
-curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
-    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim &> /dev/null
-
-echo "vim-plug installed"
-echo "---> configurations for vim plugins"
-
-echo "./vimrc.save --> ~/.vimrc"
-cp ./vimrc.save ~/.vimrc
-
-echo "Remember to install plugins from vim"
-echo "--> :source .vimrc"
-echo "--> :PlugInstall"
-
-# Bash configuration ~/.bashrc
-echo "./bashrc.save --> ~/.bashrc"
-cp ./bashrc.save ~/.bashrc
-
-# Creating /etc/vconsole.conf
-echo FONT=ter-924n.psf.gz > /etc/vconsole.conf

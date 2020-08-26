@@ -54,13 +54,6 @@ find_distro(){
 	fi
 }
 
-install_pipenv(){
-	echo "installing pipenv(virtual env)..."
-	python3 -m pip install pipenv &> /dev/null
-	sleep 3
-	clear
-}
-
 
 instaling(){
 	find_distro

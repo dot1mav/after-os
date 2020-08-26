@@ -8,6 +8,8 @@ DEBIAN_FILE="/etc/debian_version"
 DEBIAN_NAME="Debian"
 FILENAME="/etc/os-release"
 
+XINITRC="$HOME/.xinitrc"
+
 # You can add every package wich you need after installing fresh OS
 APT_PACKAGES="git curl"
 PACMAN_PACKAGES="konsole dolphin okular firefox terminus-font
@@ -20,20 +22,18 @@ SHELL="zsh"
 CHANGE_SHELL=0
 
 distribution(){
-        if [ -z  "$FILENAME" ]
-        then
-                if [ -f "$DEBIAN_FILE" ]
-                then
-                        DISTRO=$DEBIAN_NAME
-                else
-                        echo "Unable to find your distro"
-                fi
-        else
-                CONTENT=$(head -1 $FILENAME 2> /dev/null)
-                DISTRO=$(echo $CONTENT | sed -e \
-                "s/[[:blank:]][Ll][Ii][Nn][Uu][Xx][[:blank:]]/ /g" \
-                -e "s/\(.*\)[[:blank:]]release.*/\1/" \
-                -e "s/[[:blank:]]/ /g" )
+        if [[ -z  "$FILENAME" ]] ; then
+		if [[ -f "$DEBIAN_FILE" ]] ; then
+			DISTRO=$DEBIAN_NAME
+		else
+			echo "Unable to find your distro"
+		fi
+	else
+		CONTENT=$(head -1 $FILENAME 2> /dev/null)
+		DISTRO=$(echo $CONTENT | sed \
+			-e "s/[[:blank:]][Ll][Ii][Nn][Uu][Xx][[:blank:]]/ /g" \
+			-e "s/\(.*\)[[:blank:]]release.*/\1/" \
+			-e "s/[[:blank:]]/ /g" )
         fi
 }
 
@@ -42,8 +42,7 @@ find_distro(){
 		DISTRO=$(head -1  /etc/os-release | cut -f 2 -d '"' | cut -f 1 -d ' ')
 	else
 		FILENAME="/etc/redhat-release"
-        	if [ ! -f "$FILENAME" ]
-	        then
+        	if [[ ! -f "$FILENAME" ]] ; then
 			FILENAME=$(find $ROOT/ -maxdepth 1      \
 				-name \*$DISTRIB_SUFFIX         \
 				-and ! -name $LSB_FILE          \
@@ -91,11 +90,56 @@ instaling(){
 	fi
 }
 
+configs(){
+	DESKTOP=$XDG_CURRENT_DESKTOP
+	# Window manager
+	if [[ -n "$DESKTOP" ]] ; then
+		echo "Your current desktop: $DESKTOP"
+		echo "Creating $XINITRC"
+		if [[ "$DESKTOP" == "KDE" ]] ; then
+			echo "exec startplasma-x11" > $XINITRC
+		elif [[ "$DESKTOP" == "GNOME" ]] ; then
+			echo "exec gnome-session" > $XINITRC
+		elif [[ "$DESKTOP" == "X-Cinnamon" ]] ; then
+			echo "exec cinnamon-session" > $XINITRC
+		elif [[ "$DESKTOP" == "MATE" ]] ; then
+			echo "exec mate-session" > $XINITRC
+		elif [[ "$DESKTOP" == "XFCE" ]] ; then
+			echo "exec startxfce4" > $XINITRC
+		elif [[ "$DESKTOP" == "LXDE" ]] ; then
+			echo "exec startlxde" > $XINITRC
+		fi
+	fi
+
+	# Installing vim-plug (vim plugin manager)
+	echo "installing vim-plug"
+	curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
+	    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim &> /dev/null
+
+	echo "vim-plug installed"
+	echo "---> configurations for vim plugins"
+	
+	echo "./vimrc.save --> ~/.vimrc"
+	cp ./vimrc.save ~/.vimrc
+	
+	echo "Remember to install plugins from vim"
+	echo "--> :source .vimrc"
+	echo "--> :PlugInstall"
+	
+	# Bash configuration ~/.bashrc
+	echo "./bashrc.save --> ~/.bashrc"
+	cp ./bashrc.save ~/.bashrc
+	
+	# Creating /etc/vconsole.conf
+	echo FONT=ter-924n.psf.gz > /etc/vconsole.conf
+}
+
 main(){
 	UNAME=$(uname)
-	if [ "$UNAME" == "Linux" ] ; then
+	if [[ "$UNAME" == "Linux" ]] ; then
 		instaling
-	elif [ "$UNAME" == "Darwin" ] ; then
+		configs
+	elif [[ "$UNAME" == "Darwin" ]] ; then
 		echo "You use Darwin and this OS is not supported"
 		exit
 	elif [[ "$UNAME" == CYGWIN* || "$UNAME" == MINGW* ]] ; then
@@ -105,28 +149,3 @@ main(){
 }
 
 main
-
-# Creating ~/.xinitrc
-echo 'exec startplasma-x11' > ~/.xinitrc
-
-# Installing vim-plug (vim plugin manager)
-echo "installing vim-plug"
-curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
-    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim &> /dev/null
-
-echo "vim-plug installed"
-echo "---> configurations for vim plugins"
-
-echo "./vimrc.save --> ~/.vimrc"
-cp ./vimrc.save ~/.vimrc
-
-echo "Remember to install plugins from vim"
-echo "--> :source .vimrc"
-echo "--> :PlugInstall"
-
-# Bash configuration ~/.bashrc
-echo "./bashrc.save --> ~/.bashrc"
-cp ./bashrc.save ~/.bashrc
-
-# Creating /etc/vconsole.conf
-echo FONT=ter-924n.psf.gz > /etc/vconsole.conf
